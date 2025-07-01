@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useState } from "react";
-import { useNavigation } from "@react-navigation/native";
+import React, { useCallback, useEffect, useState, useRef } from "react";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import {
   RefreshControl,
   ScrollView,
@@ -48,11 +48,60 @@ const FavoriteScreen = () => {
   const { favorites, toggleFavorite, clearFavorites } = useFavoriteStore();
   const { setPlayer } = usePlayerStore();
 
+  // Refs for swipeable components
+  const swipeableRefs = useRef<{ [key: string]: Swipeable | null }>({});
+  const [openSwipeableId, setOpenSwipeableId] = useState<string | null>(null);
+
   const [refreshing, setRefreshing] = useState(false);
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedPlayers, setSelectedPlayers] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearchVisible, setIsSearchVisible] = useState(false);
+
+  // Close all swipeables except the specified one
+  const closeOtherSwipeables = useCallback((exceptId?: string) => {
+    Object.entries(swipeableRefs.current).forEach(([id, swipeable]) => {
+      if (swipeable && id !== exceptId) {
+        swipeable.close();
+      }
+    });
+  }, []);
+
+  // Handle swipeable open
+  const handleSwipeableOpen = useCallback(
+    (playerId: string) => {
+      if (openSwipeableId && openSwipeableId !== playerId) {
+        closeOtherSwipeables(playerId);
+      }
+      setOpenSwipeableId(playerId);
+    },
+    [openSwipeableId, closeOtherSwipeables]
+  );
+
+  // Handle swipeable close
+  const handleSwipeableClose = useCallback(
+    (playerId: string) => {
+      if (openSwipeableId === playerId) {
+        setOpenSwipeableId(null);
+      }
+    },
+    [openSwipeableId]
+  );
+
+  // Reset swipeable states when leaving screen
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        // Close all swipeables when leaving the screen
+        Object.values(swipeableRefs.current).forEach((swipeable) => {
+          if (swipeable) {
+            swipeable.close();
+          }
+        });
+        setOpenSwipeableId(null);
+      };
+    }, [])
+  );
 
   // Filter favorites based on search query
   const filteredFavorites = favorites.filter(
@@ -359,6 +408,13 @@ const FavoriteScreen = () => {
     // Show swipeable version when not in selection mode
     return (
       <Swipeable
+        ref={(ref) => {
+          if (ref) {
+            swipeableRefs.current[player.id] = ref;
+          } else {
+            delete swipeableRefs.current[player.id];
+          }
+        }}
         renderRightActions={(progress, dragX) =>
           renderRightAction(player, dragX)
         }
@@ -366,6 +422,8 @@ const FavoriteScreen = () => {
         friction={2}
         overshootRight={false}
         overshootLeft={false}
+        onSwipeableOpen={() => handleSwipeableOpen(player.id)}
+        onSwipeableClose={() => handleSwipeableClose(player.id)}
         containerStyle={{
           marginHorizontal: 16,
           marginBottom: 12,

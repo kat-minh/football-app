@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState, useRef } from "react";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import {
   RefreshControl,
   ScrollView,
@@ -79,6 +79,27 @@ const HomeScreen = () => {
   useEffect(() => {
     fetchPlayers();
   }, []);
+
+  // Reset search and filters when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      // Reset search
+      setSearchQuery("");
+      setIsSearchVisible(false);
+
+      // Reset filters
+      setSelectedTeam("");
+      setSelectedPosition("");
+      setShowOnlyFavorites(false);
+      setShowOnlyCaptains(false);
+
+      // Reset modal
+      setShowFilterModal(false);
+
+      // Dismiss keyboard if open
+      Keyboard.dismiss();
+    }, [])
+  );
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
