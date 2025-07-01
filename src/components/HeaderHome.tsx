@@ -31,7 +31,7 @@ export const HeaderHome = ({ navigation }: NativeStackHeaderProps) => {
         />
 
         <Text style={{ fontSize: 14, fontWeight: "600", color: "#333" }}>
-          Football League
+          Football App
         </Text>
       </View>
 

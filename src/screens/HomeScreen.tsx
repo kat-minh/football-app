@@ -144,8 +144,16 @@ const HomeScreen = () => {
       animationType="slide"
       onRequestClose={() => setShowFilterModal(false)}
     >
-      <View className="flex-1 bg-black/50 justify-end">
-        <View className="bg-white rounded-t-3xl px-6 py-6">
+      <TouchableOpacity
+        className="flex-1 bg-black/50 justify-end"
+        activeOpacity={1}
+        onPress={() => setShowFilterModal(false)}
+      >
+        <TouchableOpacity
+          className="bg-white rounded-t-3xl px-6 py-6"
+          activeOpacity={1}
+          onPress={(e) => e.stopPropagation()}
+        >
           <View className="flex-row items-center justify-between mb-6">
             <Text className="text-xl font-bold text-gray-900">Bộ lọc</Text>
             <TouchableOpacity onPress={() => setShowFilterModal(false)}>
@@ -312,8 +320,8 @@ const HomeScreen = () => {
               <Text className="text-white font-medium">Áp dụng</Text>
             </TouchableOpacity>
           </View>
-        </View>
-      </View>
+        </TouchableOpacity>
+      </TouchableOpacity>
     </Modal>
   );
 
