@@ -69,15 +69,6 @@ const MainTabs = () => {
               tabBarIcon: renderTabIcon(Home),
             }}
           />
-          {/* <Tab.Screen
-            name="ChatTab"
-            component={ChatWithLoading}
-            options={{
-              title: "Chat",
-              tabBarStyle: { display: "none" },
-              tabBarButton: (props) => <ChatFabButton {...props} />,
-            }}
-          /> */}
           <Tab.Screen
             name="FavoriteTab"
             component={FavoriteStack}

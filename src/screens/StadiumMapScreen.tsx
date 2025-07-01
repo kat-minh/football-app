@@ -21,10 +21,15 @@ type Props = NativeStackScreenProps<any, "StadiumMap">;
 
 const { width: screenWidth } = Dimensions.get("window");
 
+// Default location - Hanoi, Vietnam
+const DEFAULT_LOCATION: LocationData = {
+  latitude: 21.0285,
+  longitude: 105.8542,
+};
+
 export default function StadiumMapScreen({ navigation }: Props) {
-  const [currentLocation, setCurrentLocation] = useState<LocationData | null>(
-    null
-  );
+  const [currentLocation, setCurrentLocation] =
+    useState<LocationData>(DEFAULT_LOCATION);
   const [nearbyStadiums, setNearbyStadiums] = useState<StadiumLocation[]>([]);
   const [selectedStadium, setSelectedStadium] =
     useState<StadiumLocation | null>(null);
@@ -35,27 +40,17 @@ export default function StadiumMapScreen({ navigation }: Props) {
   }, []);
 
   const initializeMap = async () => {
+    // Try to get current user location (optional)
     try {
-      setIsLoading(true);
-
-      // Get current location
-      const location = await locationService.getCurrentLocation();
-      if (location) {
-        setCurrentLocation(location);
-
-        // Get nearby stadiums
-        const stadiums = locationService.findNearbyStadiums(
-          location.latitude,
-          location.longitude,
-          50 // 50km radius
-        );
-        setNearbyStadiums(stadiums);
-      }
-    } catch (error) {
-      Alert.alert(
-        "Lỗi",
-        "Không thể tải bản đồ. Vui lòng kiểm tra quyền truy cập vị trí."
+      // Update stadiums based on user location
+      let stadiums = locationService.findNearbyStadiums(
+        DEFAULT_LOCATION.latitude,
+        DEFAULT_LOCATION.longitude,
+        50 // 50km radius
       );
+      setNearbyStadiums(stadiums);
+    } catch (error) {
+      Alert.alert("Lỗi", "Hiển thị bản đồ tại Hà Nội");
     } finally {
       setIsLoading(false);
     }
@@ -121,7 +116,7 @@ export default function StadiumMapScreen({ navigation }: Props) {
   if (!currentLocation) {
     return (
       <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>Không thể xác định vị trí</Text>
+        <Text style={styles.errorText}>Đang khởi tạo bản đồ tại Hà Nội...</Text>
         <TouchableOpacity
           style={styles.retryButton}
           onPress={handleRefreshLocation}
@@ -170,9 +165,21 @@ export default function StadiumMapScreen({ navigation }: Props) {
             latitude: currentLocation.latitude,
             longitude: currentLocation.longitude,
           }}
-          title="Vị trí của bạn"
-          description="Vị trí hiện tại"
-          pinColor="blue"
+          title={
+            currentLocation.latitude === DEFAULT_LOCATION.latitude
+              ? "Hà Nội"
+              : "Vị trí của bạn"
+          }
+          description={
+            currentLocation.latitude === DEFAULT_LOCATION.latitude
+              ? "Vị trí mặc định"
+              : "Vị trí hiện tại"
+          }
+          pinColor={
+            currentLocation.latitude === DEFAULT_LOCATION.latitude
+              ? "green"
+              : "blue"
+          }
         />
 
         {/* Stadium Markers */}
@@ -197,7 +204,10 @@ export default function StadiumMapScreen({ navigation }: Props) {
       {/* Stats */}
       <View style={styles.statsContainer}>
         <Text style={styles.statsText}>
-          📍 Tìm thấy {nearbyStadiums.length} sân vận động gần bạn
+          📍 Tìm thấy {nearbyStadiums.length} sân vận động{" "}
+          {currentLocation.latitude === DEFAULT_LOCATION.latitude
+            ? "quanh Hà Nội"
+            : "gần bạn"}
         </Text>
       </View>
     </View>

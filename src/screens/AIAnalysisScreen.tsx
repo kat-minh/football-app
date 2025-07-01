@@ -61,6 +61,45 @@ export default function AIAnalysisScreen() {
 
   // Initialize AI service
   useEffect(() => {
+    // Hide tab bar when component mounts
+    const parent = navigation.getParent();
+    if (parent) {
+      parent.setOptions({
+        tabBarStyle: { display: "none" },
+      });
+    }
+
+    // Show tab bar when component unmounts
+    return () => {
+      if (parent) {
+        parent.setOptions({
+          tabBarStyle: {
+            backgroundColor: "#fefce8",
+            borderTopWidth: 0,
+            height: 80,
+            borderTopRightRadius: 20,
+            borderTopLeftRadius: 20,
+            paddingBottom: Platform.OS === "ios" ? 20 : 10,
+            display: "flex",
+            ...Platform.select({
+              ios: {
+                shadowColor: "#000",
+                shadowOffset: { width: 0, height: -3 },
+                shadowOpacity: 0.1,
+                shadowRadius: 6,
+              },
+              android: {
+                elevation: 8,
+              },
+            }),
+          },
+        });
+      }
+    };
+  }, [navigation]);
+
+  // Initialize AI service
+  useEffect(() => {
     const initializeService = async () => {
       try {
         await aiFootballService.ensureInitialized();
@@ -540,14 +579,14 @@ export default function AIAnalysisScreen() {
 
           {/* Input */}
           <View
-            className="flex-row items-end px-4 py-3 bg-gray-50 border-t border-gray-200"
+            className="px-4 py-3 bg-gray-50 border-t border-gray-200"
             style={{
-              marginBottom: keyboardHeight > 0 ? keyboardHeight - 80 : 0,
+              marginBottom: keyboardHeight > 0 ? keyboardHeight : 0,
             }}
           >
             {/* Image Preview */}
             {selectedImage && (
-              <View className="w-full mb-3">
+              <View className="w-full mb-3 flex-row items-center">
                 <View className="relative">
                   <Image
                     source={{ uri: selectedImage }}
@@ -564,47 +603,49 @@ export default function AIAnalysisScreen() {
               </View>
             )}
 
-            {/* Camera Button */}
-            <TouchableOpacity
-              onPress={handleImagePress}
-              disabled={isLoading}
-              className="rounded-full p-3 mr-2 bg-gray-200"
-            >
-              <Camera size={20} color="#6b7280" />
-            </TouchableOpacity>
+            <View className="flex-row items-end">
+              {/* Camera Button */}
+              <TouchableOpacity
+                onPress={handleImagePress}
+                disabled={isLoading}
+                className="rounded-full p-3 mr-2 bg-gray-200"
+              >
+                <Camera size={20} color="#6b7280" />
+              </TouchableOpacity>
 
-            <TextInput
-              value={inputText}
-              onChangeText={setInputText}
-              placeholder="Hỏi tôi về bóng đá hoặc gửi hình ảnh..."
-              className="flex-1 bg-white rounded-full px-4 py-3 mr-3 border border-gray-200 min-h-[44px]"
-              multiline
-              maxLength={1000}
-              onSubmitEditing={
-                selectedImage ? sendMessageWithImage : sendMessage
-              }
-              returnKeyType="send"
-              blurOnSubmit={false}
-              editable={!isLoading}
-              textAlignVertical="center"
-              onFocus={() => {
-                setTimeout(() => {
-                  scrollViewRef.current?.scrollToEnd({ animated: true });
-                }, 100);
-              }}
-            />
+              <TextInput
+                value={inputText}
+                onChangeText={setInputText}
+                placeholder="Hỏi tôi về bóng đá hoặc gửi hình ảnh..."
+                className="flex-1 bg-white rounded-full px-4 py-3 mr-3 border border-gray-200 min-h-[44px]"
+                multiline
+                maxLength={1000}
+                onSubmitEditing={
+                  selectedImage ? sendMessageWithImage : sendMessage
+                }
+                returnKeyType="send"
+                blurOnSubmit={false}
+                editable={!isLoading}
+                textAlignVertical="center"
+                onFocus={() => {
+                  setTimeout(() => {
+                    scrollViewRef.current?.scrollToEnd({ animated: true });
+                  }, 100);
+                }}
+              />
 
-            <TouchableOpacity
-              onPress={selectedImage ? sendMessageWithImage : sendMessage}
-              disabled={(!inputText.trim() && !selectedImage) || isLoading}
-              className={`rounded-full p-3 ${
-                (inputText.trim() || selectedImage) && !isLoading
-                  ? "bg-blue-500"
-                  : "bg-gray-300"
-              }`}
-            >
-              <Send size={20} color="white" />
-            </TouchableOpacity>
+              <TouchableOpacity
+                onPress={selectedImage ? sendMessageWithImage : sendMessage}
+                disabled={(!inputText.trim() && !selectedImage) || isLoading}
+                className={`rounded-full p-3 ${
+                  (inputText.trim() || selectedImage) && !isLoading
+                    ? "bg-blue-500"
+                    : "bg-gray-300"
+                }`}
+              >
+                <Send size={20} color="white" />
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* Image Selection Modal */}
